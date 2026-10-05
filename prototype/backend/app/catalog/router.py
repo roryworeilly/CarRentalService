@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from ..db import get_db
@@ -29,3 +29,11 @@ def list_vehicles(
         period_start=period_start,
         period_end=period_end,
     )
+
+
+@router.get("/{vehicle_id}", response_model=VehicleSearchOut)
+def get_vehicle(vehicle_id: str, db: Session = Depends(get_db)):
+    vehicle = service.get_vehicle(db, vehicle_id)
+    if vehicle is None:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    return vehicle

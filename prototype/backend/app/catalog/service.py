@@ -63,3 +63,29 @@ def search_vehicles(
         }
         for v, c in rows
     ]
+
+
+def get_vehicle(db: Session, vehicle_id: str):
+    """Return a single vehicle with category info. F.R 2.1."""
+    row = db.execute(
+        select(Vehicle, VehicleCategory)
+        .join(VehicleCategory, Vehicle.category_id == VehicleCategory.id)
+        .where(Vehicle.id == vehicle_id)
+    ).first()
+    if row is None:
+        return None
+    v, c = row
+    return {
+        "id": v.id,
+        "vin": v.vin,
+        "make": v.make,
+        "model": v.model,
+        "year": v.year,
+        "seats": v.seats,
+        "status": v.status,
+        "category_id": v.category_id,
+        "home_location_id": v.home_location_id,
+        "category_name": c.name,
+        "daily_rate": c.daily_rate,
+        "flat_fee": c.flat_fee,
+    }
