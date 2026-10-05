@@ -41,6 +41,7 @@ Reference F.R / NFR / UC ids where relevant.
   - Reads `category_name`/`daily_rate` or `category`/`dailyRate` so cards render correctly from either backend endpoint shape.
 
 ### Fixed
+- **Demo test-pass fixes** — registration payload now snake_case (F.R 1.1); admin bookings API returns `customer_email`/`vehicle_label` and table shows dates (F.R 5.4); booking dates display in UTC; login keeps the original URL and search params; admins see a clear message on My Bookings (F.R 1.4); Economy fallback image replaced; cancel shows a refund/no-refund notice (F.R 3.5/4.5).
 - **Frontend (`src/auth.jsx`)** — token/user shape mismatch
   - `login()` and `register()` were reading `data.token` + `data.user` from the API response, but `TokenOut` returns `{access_token, token_type, role, user_id}`. Result: `user` was `undefined`, admin pages were unreachable because `AdminRoute` couldn't see `user.role`.
   - Now reads `data.access_token` and constructs `user = {id: data.user_id, role: data.role, email}` (email from the credentials/payload). Admin gating works end-to-end.

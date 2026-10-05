@@ -8,7 +8,7 @@ Status legend: [x] done and exercised, [~] implemented but not verified end-to-e
 - [x] DB schema + seed data (Postgres 16 via `prototype/docker-compose.yml`)
 - [x] Register / login (age 21+, licence) - F.R 1.1; backend tests pass
 - [x] Vehicle list + availability search (`GET /vehicles`, `GET /vehicles/{id}`, `GET /locations`)
-- [x] Quote + reserve (hold) + mock payment -> CONFIRMED: exercised over the API through the Vite proxy against Postgres (quote 120.00 for 3 days, reserve 201, pay CONFIRMED). Frontend fixes (search->detail params, checkout 402 handling, My Bookings fields) are build-tested; screens not yet clicked through in a browser
+- [x] Quote + reserve (hold) + mock payment -> CONFIRMED: exercised over the API through the Vite proxy against Postgres (quote 120.00 for 3 days, reserve 201, pay CONFIRMED). Frontend flow confirmed in a manual browser pass (search, quote, pay, decline + retry, cancel, 409, admin); registration, admin table and date-display bugs from that pass fixed
 - [x] Failed payment -> FAILED_PAYMENT with 15-min hold (402 + hold_expires_at), retry with a good card -> CONFIRMED, verified over the API; APScheduler expiry every 60s
 - [x] Cancel / refund (verified over the API on Postgres: CANCELLED, refund row, payment REFUNDED)
 - [x] Dynamic-flow (sequence) diagrams (`diagrams/dynamic-flows/`)
@@ -26,7 +26,7 @@ Status legend: [x] done and exercised, [~] implemented but not verified end-to-e
 - Return location = pickup location in the UI (simplification).
 
 ## Blockers / next week
-- Click through the full demo path in a browser (see `docs/demo-script.md`); API path is verified, UI screens are not.
+- Rehearse the demo path once more after the latest fixes (see `docs/demo-script.md`).
 - Open issues #2-#5, #7 still open; #6 partly closed (Stripe/SES undecided).
 - Expiry can lag up to 60s; single-process scheduler only.
 - Capture screenshots / demo video.
