@@ -28,6 +28,7 @@ export default function MyBookings() {
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(null);
+  const [notice, setNotice] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -57,14 +58,21 @@ export default function MyBookings() {
     setVehicles((c) => ids.reduce((a, id) => ({ ...a, [id]: a[id] ?? undefined }), { ...c }));
   }, [bookings]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const cancel = async (id) => {
+  // F.R 3.5 / 4.5: refund is issued by the backend only when cancelling a CONFIRMED booking.
+  const cancel = async (b) => {
     if (!confirm('Cancel this booking? Refunds only issue from CONFIRMED bookings.')) return;
-    setCancelling(id);
+    setCancelling(b.id);
+    setNotice(null);
     try {
-      await api.post(`/bookings/${id}/cancel`);
+      await api.post(`/bookings/${b.id}/cancel`);
+      setNotice(
+        b.status === 'CONFIRMED'
+          ? `Booking ${b.reference} cancelled. A refund of $${Number(b.quote_total).toFixed(2)} has been issued.`
+          : `Booking ${b.reference} cancelled. No charge was made, so no refund is due.`
+      );
       await load();
     } catch (e) {
-      setErr(e.message);
+      setNotice(`Could not cancel: ${e.message}`);
     } finally {
       setCancelling(null);
     }
@@ -79,6 +87,7 @@ export default function MyBookings() {
   return (
     <div>
       <h2>My bookings</h2>
+      {notice && <div className="warn" onClick={() => setNotice(null)}>{notice}</div>}
       {bookings.length === 0 && <div className="muted">You have no bookings yet.</div>}
       <div className="list">
         {bookings.map((b) => {
@@ -107,7 +116,7 @@ export default function MyBookings() {
                   <button
                     className="link-btn"
                     disabled={cancelling === b.id}
-                    onClick={() => cancel(b.id)}
+                    onClick={() => cancel(b)}
                   >
                     {cancelling === b.id ? 'Cancelling…' : 'Cancel'}
                   </button>
