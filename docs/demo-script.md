@@ -1,6 +1,6 @@
 # 5-Minute Demo Script
 
-Status: written from the code and docs; steps marked (unverified) have not been run end-to-end in a browser.
+Status: the booking, payment, retry, cancel, 409 and admin steps were verified over the API against Postgres; the browser screens have not been clicked through, so rehearse once before presenting. Steps marked (unverified) were not run in a browser.
 
 ## Setup (before the demo)
 ```bash

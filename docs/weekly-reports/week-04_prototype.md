@@ -8,12 +8,12 @@ Status legend: [x] done and exercised, [~] implemented but not verified end-to-e
 - [x] DB schema + seed data (Postgres 16 via `prototype/docker-compose.yml`)
 - [x] Register / login (age 21+, licence) - F.R 1.1; backend tests pass
 - [x] Vehicle list + availability search (`GET /vehicles`, `GET /vehicles/{id}`, `GET /locations`)
-- [~] Quote + reserve (hold) + mock payment -> CONFIRMED (backend tested; frontend flow being fixed for demo: search->detail params, checkout 402 handling, My Bookings fields)
-- [x] Failed payment -> FAILED_PAYMENT with 15-min hold; APScheduler expiry every 60s (backend)
-- [x] Cancel / refund (backend)
+- [x] Quote + reserve (hold) + mock payment -> CONFIRMED: exercised over the API through the Vite proxy against Postgres (quote 120.00 for 3 days, reserve 201, pay CONFIRMED). Frontend fixes (search->detail params, checkout 402 handling, My Bookings fields) are build-tested; screens not yet clicked through in a browser
+- [x] Failed payment -> FAILED_PAYMENT with 15-min hold (402 + hold_expires_at), retry with a good card -> CONFIRMED, verified over the API; APScheduler expiry every 60s
+- [x] Cancel / refund (verified over the API on Postgres: CANCELLED, refund row, payment REFUNDED)
 - [x] Dynamic-flow (sequence) diagrams (`diagrams/dynamic-flows/`)
 - [x] Admin API + UI (dashboard, fleet, categories, bookings, status override with audit entry)
-- [~] Double-booking 409: backed by Postgres EXCLUDE constraint; the test only runs against Postgres and has not been re-confirmed against the Compose DB this week
+- [x] Double-booking 409: confirmed on Postgres 16 (overlapping reserve returns 409; dedicated test hits the EXCLUDE constraint alone, 17 passed). Not yet run against the docker-compose DB (Docker not installed on the dev machine; same schema.sql/seed.sql used)
 - [ ] Frontend automated tests
 - [ ] Stripe test mode, SES email, EC2 deployment (deferred)
 
@@ -26,7 +26,7 @@ Status legend: [x] done and exercised, [~] implemented but not verified end-to-e
 - Return location = pickup location in the UI (simplification).
 
 ## Blockers / next week
-- Confirm full demo path end-to-end in a browser against Postgres (see `docs/demo-script.md`); not all steps verified yet.
+- Click through the full demo path in a browser (see `docs/demo-script.md`); API path is verified, UI screens are not.
 - Open issues #2-#5, #7 still open; #6 partly closed (Stripe/SES undecided).
 - Expiry can lag up to 60s; single-process scheduler only.
 - Capture screenshots / demo video.
