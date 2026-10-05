@@ -4,11 +4,6 @@ import { api } from '../api.js';
 import VehicleCard from '../components/VehicleCard.jsx';
 
 // F.R 2.4: only AVAILABLE + non-overlapping vehicles are returned by the backend.
-const LOCATIONS = [
-  { id: '1', name: 'Downtown — Pittsburgh' },
-  { id: '2', name: 'Airport — PIT' },
-  { id: '3', name: 'Oakland Campus' },
-];
 const CATEGORIES = ['', 'ECONOMY', 'COMPACT', 'SUV', 'LUXURY', 'VAN'];
 
 function todayISO(offset = 0) {
@@ -19,17 +14,22 @@ function todayISO(offset = 0) {
 
 export default function Search() {
   const [params, setParams] = useSearchParams();
-  const [pickupDate, setPickupDate] = useState(params.get('pickupDate') || todayISO(1));
-  const [returnDate, setReturnDate] = useState(params.get('returnDate') || todayISO(4));
-  const [locationId, setLocationId] = useState(params.get('locationId') || LOCATIONS[0].id);
+  const [locations, setLocations] = useState([]);
+  const [pickupDate, setPickupDate] = useState(params.get('period_start') || todayISO(1));
+  const [returnDate, setReturnDate] = useState(params.get('period_end') || todayISO(4));
+  const [locationId, setLocationId] = useState(params.get('location_id') || '');
   const [category, setCategory] = useState(params.get('category') || '');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState(null);
   const [notice, setNotice] = useState(params.get('notice'));
 
+  useEffect(() => {
+    api.get('/locations').then(setLocations).catch(() => {});
+  }, []);
+
   const buildQS = () => {
-    const qp = new URLSearchParams({ pickupDate, returnDate, locationId });
+    const qp = new URLSearchParams({ period_start: pickupDate, period_end: returnDate, location_id: locationId });
     if (category) qp.set('category', category);
     return qp.toString();
   };
@@ -67,7 +67,7 @@ export default function Search() {
         </label>
         <label>Location
           <select value={locationId} onChange={(e) => setLocationId(e.target.value)}>
-            {LOCATIONS.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
+            {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
         </label>
         <label>Category
