@@ -78,3 +78,55 @@ Run time of job "_run_expiry (trigger: interval[0:01:00], next run at: 2026-10-0
 Run time of job "_run_expiry (trigger: interval[0:01:00], next run at: 2026-10-05 13:14:54 EDT)" was missed by 0:00:59.798032
 Run time of job "_run_expiry (trigger: interval[0:01:00], next run at: 2026-10-05 13:45:54 EDT)" was missed by 0:00:08.172995
 Run time of job "_run_expiry (trigger: interval[0:01:00], next run at: 2026-10-05 14:12:54 EDT)" was missed by 0:00:42.660565
+INFO:     127.0.0.1:54290 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54292 - "GET /vehicles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54294 - "POST /bookings/quote HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54296 - "POST /bookings HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54298 - "POST /bookings HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54300 - "GET /vehicles?period_start=2026-10-15T10:00:00Z&period_end=2026-10-18T10:00:00Z HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54302 - "POST /bookings//pay HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54304 - "POST /bookings//pay HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54306 - "GET /bookings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54308 - "POST /bookings//cancel HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54310 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54312 - "GET /admin/dashboard HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54314 - "GET /admin/bookings?from=2020-01-01T00:00:00Z HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54316 - "GET /vehicles/not-a-uuid HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:54320 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54322 - "GET /vehicles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54324 - "POST /bookings/quote HTTP/1.1" 200 OK
+[notification] template=booking_created booking=BK-9782358E status=INPROGRESS
+INFO:     127.0.0.1:54326 - "POST /bookings HTTP/1.1" 201 Created
+INFO:     127.0.0.1:54328 - "POST /bookings HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:54330 - "GET /vehicles?period_start=2026-11-14T10:00:00Z&period_end=2026-11-17T10:00:00Z HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54332 - "POST /bookings/c92b6f14-e14b-46e1-aacf-df8ef671c4c9/pay HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54334 - "POST /bookings/c92b6f14-e14b-46e1-aacf-df8ef671c4c9/pay HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54336 - "GET /bookings HTTP/1.1" 200 OK
+[notification] template=booking_cancelled booking=BK-9782358E status=CANCELLED
+INFO:     127.0.0.1:54338 - "POST /bookings/c92b6f14-e14b-46e1-aacf-df8ef671c4c9/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54341 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54343 - "GET /vehicles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54345 - "POST /bookings/quote HTTP/1.1" 200 OK
+[notification] template=booking_created booking=BK-A3023824 status=INPROGRESS
+INFO:     127.0.0.1:54347 - "POST /bookings HTTP/1.1" 201 Created
+INFO:     127.0.0.1:54349 - "POST /bookings HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:54351 - "GET /vehicles?period_start=2026-11-14T10:00:00Z&period_end=2026-11-17T10:00:00Z HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54353 - "POST /bookings/a9828c95-7811-4993-b330-c63d478858ca/pay HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54355 - "POST /bookings/a9828c95-7811-4993-b330-c63d478858ca/pay HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:54357 - "GET /bookings HTTP/1.1" 200 OK
+[notification] template=booking_cancelled booking=BK-A3023824 status=CANCELLED
+INFO:     127.0.0.1:54359 - "POST /bookings/a9828c95-7811-4993-b330-c63d478858ca/cancel HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54364 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54366 - "GET /vehicles HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54368 - "POST /bookings/quote HTTP/1.1" 200 OK
+[notification] template=booking_created booking=BK-A22A4D27 status=INPROGRESS
+INFO:     127.0.0.1:54370 - "POST /bookings HTTP/1.1" 201 Created
+INFO:     127.0.0.1:54372 - "POST /bookings HTTP/1.1" 409 Conflict
+INFO:     127.0.0.1:54374 - "GET /vehicles?period_start=2026-12-04T10:00:00Z&period_end=2026-12-07T10:00:00Z HTTP/1.1" 200 OK
+[notification] template=payment_failed booking=BK-A22A4D27 status=FAILED_PAYMENT
+INFO:     127.0.0.1:54376 - "POST /bookings/ed73aa81-6cc8-41b7-be9a-612383e43aba/pay HTTP/1.1" 402 Payment Required
+[notification] template=booking_confirmed booking=BK-A22A4D27 status=CONFIRMED
+INFO:     127.0.0.1:54378 - "POST /bookings/ed73aa81-6cc8-41b7-be9a-612383e43aba/pay HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54380 - "GET /bookings HTTP/1.1" 200 OK
+[notification] template=booking_cancelled booking=BK-A22A4D27 status=CANCELLED
+INFO:     127.0.0.1:54382 - "POST /bookings/ed73aa81-6cc8-41b7-be9a-612383e43aba/cancel HTTP/1.1" 200 OK
