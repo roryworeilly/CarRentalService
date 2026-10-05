@@ -193,7 +193,8 @@ class CategoryUpdate(BaseModel):
 
 
 class AdminBookingOut(BookingOut):
-    pass
+    customer_email: Optional[str] = None
+    vehicle_label: Optional[str] = None
 
 
 class BookingOverrideRequest(BaseModel):

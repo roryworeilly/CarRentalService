@@ -52,14 +52,14 @@ export default function Register() {
       await register({
         email: form.email,
         password: form.password,
-        firstName: form.firstName,
-        lastName: form.lastName,
-        dateOfBirth: form.dateOfBirth,
+        first_name: form.firstName,
+        last_name: form.lastName,
+        date_of_birth: form.dateOfBirth,
         phone: form.phone,
         licence: {
           number: form.licenceNumber,
-          issuingState: form.issuingState,
-          expiresOn: form.expiresOn,
+          issuing_state: form.issuingState,
+          expires_on: form.expiresOn,
         },
       });
       navigate('/search', { replace: true });

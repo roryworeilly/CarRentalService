@@ -17,7 +17,8 @@ export default function Login() {
     setBusy(true);
     try {
       await login(email, password);
-      const to = location.state?.from?.pathname || '/search';
+      const from = location.state?.from;
+      const to = from ? `${from.pathname}${from.search || ''}` : '/search'; // keep chosen dates/location
       navigate(to, { replace: true });
     } catch (e) {
       setErr(e.message);

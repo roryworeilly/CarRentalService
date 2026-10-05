@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from ..db import get_db
 from ..deps import require_role
-from ..models import User
+from ..models import User, Vehicle
 from ..schemas import (
     AdminDashboard,
     AdminVehicleOut,
@@ -79,6 +79,16 @@ def update_category(
 
 
 # ---- Bookings (F.R 5.4 / UC-21) ----
+def _enrich(db: Session, b) -> AdminBookingOut:
+    """Attach customer email and vehicle label so the admin table can show them."""
+    out = AdminBookingOut.model_validate(b)
+    cust = db.get(User, b.customer_id)
+    veh = db.get(Vehicle, b.vehicle_id)
+    out.customer_email = cust.email if cust else None
+    out.vehicle_label = f"{veh.make} {veh.model}" if veh else None
+    return out
+
+
 @router.get("/bookings", response_model=list[AdminBookingOut])
 def search_bookings(
     status: Optional[str] = Query(None),
@@ -89,7 +99,7 @@ def search_bookings(
     db: Session = Depends(get_db),
     _: User = Depends(require_role("ADMIN")),
 ):
-    return service.search_bookings(
+    rows = service.search_bookings(
         db,
         status=status,
         customer_email=customer_email,
@@ -97,6 +107,7 @@ def search_bookings(
         from_=from_,
         to=to,
     )
+    return [_enrich(db, b) for b in rows]
 
 
 @router.post("/bookings/{booking_id}/override-status", response_model=AdminBookingOut)
@@ -106,10 +117,11 @@ def override_booking_status(
     db: Session = Depends(get_db),
     actor: User = Depends(require_role("ADMIN")),
 ):
-    return service.override_status(
+    b = service.override_status(
         db,
         booking_id=booking_id,
         new_status=body.status,
         reason=body.reason,
         actor=actor,
     )
+    return _enrich(db, b)

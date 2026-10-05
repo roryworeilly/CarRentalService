@@ -76,6 +76,8 @@ export default function AdminBookings() {
     }
   };
 
+  const fmtDate = (iso) =>
+    iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium', timeZone: 'UTC' }) : '—';
   const fmtMoney = (n) =>
     (n == null ? 0 : Number(n)).toLocaleString(undefined, {
       style: 'currency',
@@ -146,14 +148,12 @@ export default function AdminBookings() {
             {bookings.map((b) => (
               <tr key={b.id}>
                 <td className="ref">{b.reference || b.id}</td>
-                <td>{b.customer_email || b.customer?.email || '—'}</td>
+                <td>{b.customer_email || '—'}</td>
                 <td>
-                  {b.vehicle
-                    ? `${b.vehicle.make} ${b.vehicle.model}`
-                    : '—'}
+                  {b.vehicle_label || '—'}
                 </td>
                 <td>
-                  {b.pickup_date || b.pickupDate} → {b.return_date || b.returnDate}
+                  {fmtDate(b.period_start)} → {fmtDate(b.period_end)}
                 </td>
                 <td>
                   <span className={`status status-${b.status}`}>{b.status}</span>

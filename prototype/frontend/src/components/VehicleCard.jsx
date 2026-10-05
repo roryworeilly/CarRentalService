@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 
 const CATEGORY_IMAGE = {
-  Economy: 'https://images.unsplash.com/photo-1549924231-f129b911e442?auto=format&fit=crop&w=640&q=70',
+  Economy: 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?auto=format&fit=crop&w=640&q=70',
   Sedan:   'https://images.unsplash.com/photo-1550355291-bbee04a92027?auto=format&fit=crop&w=640&q=70',
   SUV:     'https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=640&q=70',
   Truck:   'https://images.unsplash.com/photo-1595758228888-98f61b8d1b73?auto=format&fit=crop&w=640&q=70',

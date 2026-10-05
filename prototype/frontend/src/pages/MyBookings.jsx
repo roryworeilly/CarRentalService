@@ -5,6 +5,10 @@ import { api } from '../api.js';
 const fmt = (iso) =>
   iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '';
 
+// Booking dates are picked as calendar days (UTC midnight), so show them in UTC.
+const fmtDay = (iso) =>
+  iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium', timeZone: 'UTC' }) : '';
+
 function Hold({ expiresAt }) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
@@ -67,7 +71,10 @@ export default function MyBookings() {
   };
 
   if (loading) return <div className="muted">Loading…</div>;
-  if (err) return <div className="error">{err}</div>;
+  if (err) {
+    const staff = /forbidden/i.test(err);
+    return <div className="error">{staff ? 'My Bookings is for customer accounts. Admins can review bookings under Admin → Bookings.' : err}</div>;
+  }
 
   return (
     <div>
@@ -82,7 +89,7 @@ export default function MyBookings() {
               <div>
                 <div className="ref">{b.reference || b.id}</div>
                 <div className="muted">
-                  {v ? `${v.make} ${v.model}` : 'Vehicle'} · {fmt(b.period_start)} → {fmt(b.period_end)}
+                  {v ? `${v.make} ${v.model}` : 'Vehicle'} · {fmtDay(b.period_start)} → {fmtDay(b.period_end)}
                 </div>
                 {b.quote_total != null && <div>Total: ${b.quote_total}</div>}
                 {b.status === 'FAILED_PAYMENT' && b.hold_expires_at && (
