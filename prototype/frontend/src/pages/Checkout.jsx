@@ -42,13 +42,14 @@ export default function Checkout() {
     setErr(null);
     try {
       const res = await api.post(`/bookings/${bookingId}/pay`, {
-        cardNumber: card.cardNumber.replace(/\s+/g, ''),
-        expMonth: Number(card.expMonth),
-        expYear: Number(card.expYear),
+        card_number: card.cardNumber.replace(/\s+/g, ''),
+        exp_month: Number(card.expMonth),
+        exp_year: Number(card.expYear),
         cvc: card.cvc,
+        idempotency_key: crypto.randomUUID(),
       });
       setStatus(res.status);
-      setHoldExpiresAt(res.holdExpiresAt || null);
+      setHoldExpiresAt(res.hold_expires_at || null);
       if (res.status === 'CONFIRMED') {
         setTimeout(() => navigate('/bookings'), 1500);
       }
