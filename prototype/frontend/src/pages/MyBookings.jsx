@@ -1,8 +1,26 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+
+const fmt = (iso) =>
+  iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '';
+
+function Hold({ expiresAt }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const rem = new Date(expiresAt).getTime() - now;
+  if (rem <= 0) return <span>Hold expired</span>;
+  const m = Math.floor(rem / 60000);
+  const s = Math.floor((rem % 60000) / 1000);
+  return <span>Hold expires in {m}:{String(s).padStart(2, '0')} (at {fmt(expiresAt)})</span>;
+}
 
 export default function MyBookings() {
   const [bookings, setBookings] = useState([]);
+  const [vehicles, setVehicles] = useState({}); // id -> vehicle | null (cached)
   const [err, setErr] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(null);
@@ -20,6 +38,20 @@ export default function MyBookings() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Fetch vehicle make/model once per id; tolerate errors (F.R 3.4).
+  useEffect(() => {
+    const ids = [...new Set(bookings.map((b) => b.vehicle_id))].filter(
+      (id) => id != null && !(id in vehicles)
+    );
+    if (!ids.length) return;
+    ids.forEach((id) => {
+      api.get(`/vehicles/${id}`)
+        .then((v) => setVehicles((c) => ({ ...c, [id]: v })))
+        .catch(() => setVehicles((c) => ({ ...c, [id]: null })));
+    });
+    setVehicles((c) => ids.reduce((a, id) => ({ ...a, [id]: a[id] ?? undefined }), { ...c }));
+  }, [bookings]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cancel = async (id) => {
     if (!confirm('Cancel this booking? Refunds only issue from CONFIRMED bookings.')) return;
@@ -42,29 +74,41 @@ export default function MyBookings() {
       <h2>My bookings</h2>
       {bookings.length === 0 && <div className="muted">You have no bookings yet.</div>}
       <div className="list">
-        {bookings.map((b) => (
-          <div className="card booking-row" key={b.id}>
-            <div>
-              <div className="ref">{b.reference || b.id}</div>
-              <div className="muted">
-                {b.vehicle ? `${b.vehicle.make} ${b.vehicle.model}` : 'Vehicle'} ·{' '}
-                {b.pickupDate} → {b.returnDate}
+        {bookings.map((b) => {
+          const v = vehicles[b.vehicle_id];
+          const payable = ['INPROGRESS', 'FAILED_PAYMENT'].includes(b.status);
+          return (
+            <div className="card booking-row" key={b.id}>
+              <div>
+                <div className="ref">{b.reference || b.id}</div>
+                <div className="muted">
+                  {v ? `${v.make} ${v.model}` : 'Vehicle'} · {fmt(b.period_start)} → {fmt(b.period_end)}
+                </div>
+                {b.quote_total != null && <div>Total: ${b.quote_total}</div>}
+                {b.status === 'FAILED_PAYMENT' && b.hold_expires_at && (
+                  <div className="muted"><Hold expiresAt={b.hold_expires_at} /></div>
+                )}
+              </div>
+              <div className={`status status-${b.status}`}>{b.status}</div>
+              <div>
+                {payable && (
+                  <Link className="link-btn" to={`/checkout/${b.id}`}>
+                    {b.status === 'FAILED_PAYMENT' ? 'Retry payment' : 'Pay now'}
+                  </Link>
+                )}{' '}
+                {['INPROGRESS', 'CONFIRMED'].includes(b.status) && (
+                  <button
+                    className="link-btn"
+                    disabled={cancelling === b.id}
+                    onClick={() => cancel(b.id)}
+                  >
+                    {cancelling === b.id ? 'Cancelling…' : 'Cancel'}
+                  </button>
+                )}
               </div>
             </div>
-            <div className={`status status-${b.status}`}>{b.status}</div>
-            <div>
-              {['INPROGRESS', 'CONFIRMED'].includes(b.status) && (
-                <button
-                  className="link-btn"
-                  disabled={cancelling === b.id}
-                  onClick={() => cancel(b.id)}
-                >
-                  {cancelling === b.id ? 'Cancelling…' : 'Cancel'}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

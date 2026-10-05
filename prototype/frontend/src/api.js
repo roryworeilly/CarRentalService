@@ -34,8 +34,16 @@ async function request(path, { method = 'GET', body, headers = {} } = {}) {
   }
 
   if (!res.ok) {
+    // Preserve structured detail (e.g. 402 {message, booking_status, hold_expires_at}) on err.body;
+    // err.message is always a string.
     const detail = (data && data.detail) || res.statusText || 'Request failed';
-    throw new ApiError(detail, res.status, data);
+    let message = detail;
+    if (typeof detail === 'object') {
+      message = Array.isArray(detail)
+        ? detail.map((d) => d.msg || JSON.stringify(d)).join('; ')
+        : detail.message || JSON.stringify(detail);
+    }
+    throw new ApiError(String(message), res.status, data);
   }
   return data;
 }

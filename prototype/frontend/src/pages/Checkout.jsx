@@ -32,6 +32,29 @@ export default function Checkout() {
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
 
+  // Resume/refresh: load booking from GET /bookings when router state is missing (F.R 4.1/4.3).
+  useEffect(() => {
+    if (booking) return;
+    let alive = true;
+    api.get('/bookings')
+      .then((list) => {
+        if (!alive) return;
+        const b = (Array.isArray(list) ? list : []).find((x) => String(x.id) === String(bookingId));
+        if (!b) { setErr('Booking not found.'); return; }
+        setBooking(b);
+      })
+      .catch((e) => alive && setErr(e.message));
+    return () => { alive = false; };
+  }, [booking, bookingId]);
+
+  // Already failed booking: start countdown from its hold (F.R 4.4).
+  useEffect(() => {
+    if (booking?.status === 'FAILED_PAYMENT' && booking.hold_expires_at) {
+      setStatus((s) => s || 'FAILED_PAYMENT');
+      setHoldExpiresAt((h) => h || booking.hold_expires_at);
+    }
+  }, [booking]);
+
   const countdown = useCountdown(holdExpiresAt);
 
   const upd = (k) => (e) => setCard({ ...card, [k]: e.target.value });
@@ -54,7 +77,15 @@ export default function Checkout() {
         setTimeout(() => navigate('/bookings'), 1500);
       }
     } catch (e) {
-      setErr(e.message);
+      if (e.status === 402) {
+        // Decline: keep hold, allow retry (F.R 4.3/4.4)
+        const d = e.body?.detail;
+        setStatus('FAILED_PAYMENT');
+        setHoldExpiresAt((d && d.hold_expires_at) || null);
+        setErr(e.message);
+      } else {
+        setErr(e.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -69,8 +100,8 @@ export default function Checkout() {
         <div className="card">
           <div className="muted">Booking reference</div>
           <div className="ref">{booking.reference || booking.id}</div>
-          {booking.quote && (
-            <div className="total">Total due: ${booking.quote.total}</div>
+          {booking.quote_total != null && (
+            <div className="total">Total due: ${booking.quote_total}</div>
           )}
         </div>
       )}
