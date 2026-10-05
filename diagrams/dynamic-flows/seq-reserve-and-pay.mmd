@@ -1,0 +1,41 @@
+%% STARTER – UC-11 Reserve Vehicle -> UC-14 Submit Payment -> UC-15 Confirm -> UC-18 Notify
+%% Assumes the 15-min hold starts at reservation (holdExpiresAt). Adjust if open issue #1 goes the other way.
+sequenceDiagram
+    actor C as Customer
+    participant UI as React SPA
+    participant API as FastAPI
+    participant BE as Booking Engine
+    participant DB as PostgreSQL
+    participant PG as Payment Gateway (Stripe)
+    participant N as Notifications
+
+    C->>UI: Select vehicle + dates
+    UI->>API: POST /quotes {vehicleId, period}
+    API->>BE: quote(vehicle, period, customer)
+    BE-->>API: PriceQuote (dailyRate x days + flatFee - discount)
+    API-->>UI: quote
+    C->>UI: Confirm reservation
+    UI->>API: POST /bookings
+    API->>BE: reserve()
+    BE->>BE: customer.isEligible(today) (21+, valid licence)
+    BE->>DB: INSERT booking (INPROGRESS, period, quote snapshot)
+    alt overlap (EXCLUDE constraint violated)
+        DB-->>BE: exclusion_violation
+        BE-->>UI: 409 vehicle no longer available
+    else inserted
+        DB-->>BE: booking
+        BE-->>UI: 201 booking (holdExpiresAt)
+        C->>UI: Pay
+        UI->>API: POST /bookings/{id}/payments
+        API->>PG: create charge (idempotencyKey)
+        alt payment succeeded
+            PG-->>API: succeeded
+            API->>DB: payment SUCCEEDED; booking -> CONFIRMED
+            API->>N: send confirmation email
+            API-->>UI: CONFIRMED
+        else payment failed
+            PG-->>API: failed
+            API->>DB: booking -> FAILED_PAYMENT
+            API-->>UI: retry within 15 min
+        end
+    end
