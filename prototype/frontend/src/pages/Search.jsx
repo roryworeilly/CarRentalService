@@ -3,8 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import VehicleCard from '../components/VehicleCard.jsx';
 
-// F.R 2.4: only AVAILABLE + non-overlapping vehicles are returned by the backend.
-const CATEGORIES = ['', 'ECONOMY', 'COMPACT', 'SUV', 'LUXURY', 'VAN'];
+// F.R 2.2/2.4: backend filters by exact VehicleCategory.name (case-sensitive); values match db/seed.sql.
+// No categories endpoint exists, so the list is hardcoded.
+const CATEGORIES = ['', 'Economy', 'Sedan', 'SUV', 'Truck'];
 
 function todayISO(offset = 0) {
   const d = new Date();
@@ -24,22 +25,37 @@ export default function Search() {
   const [err, setErr] = useState(null);
   const [notice, setNotice] = useState(params.get('notice'));
 
+  const [ready, setReady] = useState(false);
+  const [initialLoc, setInitialLoc] = useState(null);
+
+  // Default to a real location (first from /locations) so search/quote/reserve work (F.R 2.3).
   useEffect(() => {
-    api.get('/locations').then(setLocations).catch(() => {});
+    api.get('/locations')
+      .then((ls) => {
+        const list = Array.isArray(ls) ? ls : [];
+        setLocations(list);
+        const chosen = params.get('location_id') || (list[0] ? String(list[0].id) : '');
+        setLocationId(chosen);
+        setInitialLoc(chosen);
+      })
+      .catch((e) => setErr(e.message))
+      .finally(() => setReady(true));
+    // eslint-disable-next-line
   }, []);
 
-  const buildQS = () => {
-    const qp = new URLSearchParams({ period_start: pickupDate, period_end: returnDate, location_id: locationId });
+  const buildQS = (loc = locationId) => {
+    const qp = new URLSearchParams({ period_start: pickupDate, period_end: returnDate });
+    if (loc) qp.set('location_id', loc);
     if (category) qp.set('category', category);
     return qp.toString();
   };
 
-  const runSearch = async (e) => {
-    if (e) e.preventDefault();
+  const runSearch = async (e, loc = locationId) => {
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
     setErr(null);
     try {
-      const qs = buildQS();
+      const qs = buildQS(loc);
       setParams(qs);
       const data = await api.get(`/vehicles?${qs}`);
       setResults(Array.isArray(data) ? data : []);
@@ -50,7 +66,7 @@ export default function Search() {
     }
   };
 
-  useEffect(() => { runSearch(); /* eslint-disable-next-line */ }, []);
+  useEffect(() => { if (ready) runSearch(null, initialLoc || ''); /* eslint-disable-next-line */ }, [ready]);
 
   const qs = buildQS();
 
@@ -66,7 +82,7 @@ export default function Search() {
           <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} required />
         </label>
         <label>Location
-          <select value={locationId} onChange={(e) => setLocationId(e.target.value)}>
+          <select value={locationId} required onChange={(e) => setLocationId(e.target.value)}>
             {locations.map((l) => <option key={l.id} value={l.id}>{l.name}</option>)}
           </select>
         </label>
