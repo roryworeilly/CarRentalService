@@ -21,7 +21,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.types import JSON
 
 from ..db import Base
-from ..models import Booking, User, Vehicle, VehicleCategory, Location
+from ..models import IdType, Booking, User, Vehicle, VehicleCategory, Location
 
 
 # ---- AuditEntry ORM model (matches schema.sql audit_entries table). ----
@@ -30,7 +30,7 @@ from ..models import Booking, User, Vehicle, VehicleCategory, Location
 class AuditEntry(Base):
     __tablename__ = "audit_entries"
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    actor: Mapped[Optional[str]] = mapped_column(CHAR(36), ForeignKey("users.id"))
+    actor: Mapped[Optional[str]] = mapped_column(IdType, ForeignKey("users.id"))
     action: Mapped[str] = mapped_column(Text, nullable=False)
     before: Mapped[Optional[dict]] = mapped_column(JSON().with_variant(JSONB, "postgresql"))
     after: Mapped[Optional[dict]] = mapped_column(JSON().with_variant(JSONB, "postgresql"))

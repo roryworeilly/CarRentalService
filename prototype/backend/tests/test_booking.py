@@ -111,6 +111,25 @@ def test_double_book_returns_409(app_client):
     assert "already booked" in r2.json()["detail"]
 
 
+@pytest.mark.skipif(not IS_POSTGRES, reason="needs Postgres EXCLUDE constraint")
+def test_exclude_constraint_alone_returns_409(app_client, monkeypatch):
+    """Bypass the app-level guard so ONLY the DB EXCLUDE (SQLSTATE 23P01) stops the double booking."""
+    from app.booking import service
+    monkeypatch.setattr(service, "LIVE_STATUSES", ("EXPIRED",))  # guard now matches nothing
+    token = _register_and_login(app_client)
+    token2 = _register_and_login(app_client, email="bob@example.com")
+    v = _first_vehicle(app_client)
+    start, end = _window()
+    body = {
+        "vehicle_id": v["id"], "period_start": start, "period_end": end,
+        "pickup_location_id": v["home_location_id"], "return_location_id": v["home_location_id"],
+    }
+    assert app_client.post("/bookings", json=body, headers=_auth(token)).status_code == 201
+    r2 = app_client.post("/bookings", json=body, headers=_auth(token2))
+    assert r2.status_code == 409, r2.text
+    assert "already booked" in r2.json()["detail"]
+
+
 def test_app_level_overlap_guard_also_returns_409(app_client):
     """Even on sqlite the app-level overlap check should prevent duplicates."""
     token = _register_and_login(app_client)

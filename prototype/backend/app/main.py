@@ -11,7 +11,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError
 
 from .admin.router import router as admin_router
 from .auth.router import router as auth_router
@@ -67,6 +67,14 @@ async def integrity_error_handler(_: Request, exc: IntegrityError):
     if code == "23505":
         return JSONResponse(status_code=409, content={"detail": "duplicate key"})
     return JSONResponse(status_code=400, content={"detail": "database integrity error"})
+
+
+@app.exception_handler(DataError)
+async def data_error_handler(_: Request, exc: DataError):
+    """Malformed uuid path/body ids (SQLSTATE 22P02) on native-uuid Postgres -> 404 instead of 500."""
+    if getattr(exc.orig, "pgcode", None) == "22P02":
+        return JSONResponse(status_code=404, content={"detail": "not found"})
+    return JSONResponse(status_code=400, content={"detail": "invalid data"})
 
 
 @app.get("/health")

@@ -1,7 +1,7 @@
 """Shared pytest fixtures.
 
 Uses SQLite in-memory by default. If TEST_DATABASE_URL points at a Postgres DB,
-tests run against that instead (schema.sql must already be applied there).
+tests run against that instead (schema.sql must already be applied there; tables are TRUNCATEd per test - use a scratch DB).
 Note: the EXCLUDE USING gist (no-double-booking) constraint cannot be verified
 on sqlite; tests that rely on it are skipped unless Postgres is used.
 """
@@ -43,15 +43,26 @@ def app_client():
     from app.db import Base
     from app import models  # noqa: F401 ensure tables registered
     from app.admin import service as _admin_service  # noqa: F401 registers AuditEntry on Base
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    if IS_POSTGRES:
+        # Real schema.sql (enums, uuid, tstzrange, EXCLUDE) is pre-applied; just empty it.
+        from sqlalchemy import text
+        with engine.begin() as c:
+            c.execute(text(
+                "TRUNCATE audit_entries, notifications, refunds, payments, bookings, vehicle_images, "
+                "vehicles, vehicle_categories, locations, subscriptions, driver_licences, users "
+                "RESTART IDENTITY CASCADE"))
+    else:
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
 
     _seed(TestingSession)
 
     from app.main import app
     client = TestClient(app)
     yield client
-    Base.metadata.drop_all(bind=engine)
+    if not IS_POSTGRES:
+        Base.metadata.drop_all(bind=engine)
+    engine.dispose()
 
 
 def _seed(SessionLocal) -> None:
