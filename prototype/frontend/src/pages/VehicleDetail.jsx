@@ -20,17 +20,13 @@ export default function VehicleDetail() {
   useEffect(() => {
     (async () => {
       try {
-        // reuse the search endpoint — simplest since there is no GET /vehicles/{id} spec
-        const list = await api.get(`/vehicles?pickupDate=${pickupDate}&returnDate=${returnDate}&locationId=${pickupLocationId}`);
-        const v = (Array.isArray(list) ? list : []).find((x) => String(x.id) === String(id));
-        setVehicle(v || null);
-        if (v && pickupDate && returnDate) {
+        const v = await api.get(`/vehicles/${id}`);
+        setVehicle(v);
+        if (pickupDate && returnDate) {
           const q = await api.post('/bookings/quote', {
-            vehicleId: v.id,
-            pickupDate,
-            returnDate,
-            pickupLocationId,
-            returnLocationId,
+            vehicle_id: v.id,
+            period_start: new Date(pickupDate).toISOString(),
+            period_end: new Date(returnDate).toISOString(),
           });
           setQuote(q);
         }
@@ -38,22 +34,21 @@ export default function VehicleDetail() {
         setErr(e.message);
       }
     })();
-  }, [id, pickupDate, returnDate, pickupLocationId, returnLocationId]);
+  }, [id, pickupDate, returnDate]);
 
   const reserve = async () => {
     setBooking(true);
     setErr(null);
     try {
       const b = await api.post('/bookings', {
-        vehicleId: vehicle.id,
-        pickupDate,
-        returnDate,
-        pickupLocationId,
-        returnLocationId,
+        vehicle_id: vehicle.id,
+        period_start: new Date(pickupDate).toISOString(),
+        period_end: new Date(returnDate).toISOString(),
+        pickup_location_id: Number(pickupLocationId),
+        return_location_id: Number(returnLocationId),
       });
       navigate(`/checkout/${b.id}`, { state: { booking: b } });
     } catch (e) {
-      // 409 = double-book; bounce back to Search with a notice.
       if (e instanceof ApiError && e.status === 409) {
         const qp = new URLSearchParams({
           pickupDate: pickupDate || '',
@@ -76,11 +71,10 @@ export default function VehicleDetail() {
   return (
     <div className="detail">
       <div className="card detail-main">
-        {vehicle.imageUrl && <img src={vehicle.imageUrl} alt="" />}
         <div>
           <h2>{vehicle.make} {vehicle.model}</h2>
-          <div className="muted">{vehicle.year} · {vehicle.category} · {vehicle.seats} seats</div>
-          <div className="price">${vehicle.dailyRate}/day</div>
+          <div className="muted">{vehicle.year} · {vehicle.category_name} · {vehicle.seats} seats</div>
+          <div className="price">${vehicle.daily_rate}/day</div>
         </div>
       </div>
 
@@ -89,11 +83,11 @@ export default function VehicleDetail() {
         {quote ? (
           <table className="quote">
             <tbody>
-              <tr><td>Daily rate</td><td>${quote.dailyRate}</td></tr>
+              <tr><td>Daily rate</td><td>${quote.daily_rate}</td></tr>
               <tr><td>Days</td><td>{quote.days}</td></tr>
-              <tr><td>Flat fee</td><td>${quote.flatFee}</td></tr>
-              {quote.discountPct > 0 && (
-                <tr><td>Subscription discount</td><td>-{quote.discountPct}%</td></tr>
+              <tr><td>Flat fee</td><td>${quote.flat_fee}</td></tr>
+              {quote.discount_pct > 0 && (
+                <tr><td>Subscription discount</td><td>-{quote.discount_pct}%</td></tr>
               )}
               <tr><td>Subtotal</td><td>${quote.subtotal}</td></tr>
               <tr className="total"><td>Total</td><td>${quote.total}</td></tr>
