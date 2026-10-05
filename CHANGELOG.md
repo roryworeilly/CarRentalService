@@ -6,6 +6,16 @@ Reference F.R / NFR / UC ids where relevant.
 ## [Unreleased]
 
 ### Added
+- **Demo-readiness (in progress; being landed by several contributors)**
+  - **Frontend (Search/VehicleDetail)** - fix search -> detail query-param handoff so period/location carry through.
+  - **Frontend (Checkout)** - handle HTTP 402 payment failure (show hold countdown and retry rather than a generic error).
+  - **Frontend (MyBookings)** - show correct booking fields (vehicle, period, status, total).
+  - **Backend (models)** - Postgres model compatibility (`period tstzrange`, enums) with the docker-compose DB.
+  - **Docs** - refreshed backend/frontend READMEs, `docs/06_tech-stack.md`, `docs/07_open-issues.md` (#1, #8 resolved), `docs/demo-script.md`, `docs/weekly-reports/week-04_prototype.md`.
+  - **Repo** - `prototype/docker-compose.yml` Postgres dev DB; `test_e2e.db` untracked and `*.db` gitignored.
+  - **Backend (scheduler)** - APScheduler runs `expire_stale_holds` every 60s from the app lifespan (`app/main.py`).
+  - **Backend (catalog)** - `GET /vehicles/{id}` and `GET /locations`.
+
 - **Backend (`prototype/backend/app/admin/`)** — admin API surface (F.R 5.1–5.5)
   - `GET /admin/dashboard` — fleet counts, bookings-by-status, upcoming pickups (7d), revenue (30d).
   - `GET|POST /admin/vehicles`, `PATCH /admin/vehicles/{id}` — fleet CRUD, status transitions.
@@ -76,16 +86,18 @@ Reference F.R / NFR / UC ids where relevant.
   - `CHANGELOG.md` (this file).
 
 ### Decided (locked)
-- **Hold timer** (open issue #1 in `docs/07_open-issues.md`): starts on **payment failure**, per F.R 4.4 verbatim. `hold_expires_at` is populated only at the FAILED_PAYMENT transition, cleared on recovery.
-- **Payment path**: in-process `MockGateway` for the prototype — no Stripe, no real card handling, no API keys.
-- **Email path**: console-stubbed `Notification` service — no SMTP/SES in prototype.
-- **Scope**: no admin UI, no scheduler process wiring, no Alembic migrations (schema.sql is source of truth).
+- **Hold timer** (open issue #1, now resolved): starts on **payment failure**, per F.R 4.4 verbatim. `hold_expires_at` is populated only at the FAILED_PAYMENT transition, cleared on recovery.
+- **Payment path**: in-process `MockGateway` for the prototype - no Stripe, no real card handling, no API keys. Stripe test mode deferred.
+- **Email path**: console-stubbed `Notification` service - no SMTP/SES in prototype.
+- **Scope**: admin UI/API are in; expiry runs via in-process APScheduler (60s); no Alembic migrations (schema.sql is source of truth).
+- **Dev DB**: Postgres 16 via `prototype/docker-compose.yml` (schema + seed auto-applied).
 
 ### Known limitations
-- `expire_stale_holds` exists as a function but is not run on a schedule in the prototype.
-- Backend ORM uses `period_start` / `period_end` columns for sqlite test portability; the real `period tstzrange` + EXCLUDE constraint remains the production guarantee against double bookings.
-- Frontend has no `GET /vehicles/{id}` call (uses the list endpoint + client-side filter); no `/locations` endpoint (hardcoded list).
-- Admin endpoints (F.R 5.x) and 2FA (F.R 1.6) are out of prototype scope.
+- Expiry job runs every 60s in-process, so EXPIRED can lag the deadline by up to a minute; not suitable for multiple backend replicas (would double-run).
+- Backend ORM uses `period_start` / `period_end` columns for sqlite test portability; the real `period tstzrange` + EXCLUDE constraint remains the production guarantee against double bookings. The EXCLUDE test only runs against Postgres.
+- Return location = pickup location in the UI.
+- 2FA (F.R 1.6), Stripe, and real email delivery are out of prototype scope.
+- Demo-readiness items above are not all verified end-to-end yet.
 
 ---
 

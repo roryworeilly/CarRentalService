@@ -5,21 +5,33 @@ Vite + React (JavaScript), plain CSS, React Router. No TypeScript, no Tailwind, 
 
 ## Run
 
+Prerequisites: Postgres via `docker compose up -d` in `prototype/`, and the
+backend running (`uvicorn app.main:app --reload --port 8000` in `prototype/backend`).
+
 ```bash
 npm install
 npm run dev
 ```
 
 The dev server runs on `http://localhost:5173` and proxies `/api/*` to the
-FastAPI backend at `http://localhost:8000`. Start the backend first (see
-`prototype/backend/README.md`).
+FastAPI backend at `http://localhost:8000`.
 
 ## Prototype scope
 
-Covers registration/login, viewing cars, and booking (F.R 1.x, 2.x, 3.x).
-Admin screens are intentionally out of scope.
+Customer: registration/login, search, vehicle detail + quote, reserve,
+checkout (mock payment, 15-min retry countdown), My Bookings (cancel).
+Admin (role ADMIN only): `/admin` dashboard, `/admin/fleet`,
+`/admin/categories`, `/admin/bookings` (with status override).
+
+## Demo credentials
+
+Password for all: `password123`
+
+- Admin: `admin@carrental.com`
+- Customers: `alice@example.com`, `bob@example.com`
 
 ## Test cards (mock payments)
 
-- `4242 4242 4242 4242` — succeeds (CONFIRMED)
-- `4000 0000 0000 0002` — declines (FAILED_PAYMENT, 15-min hold)
+- `4242 4242 4242 4242` - succeeds (CONFIRMED)
+- `4000 0000 0000 0002` - declines (HTTP 402, FAILED_PAYMENT, 15-min hold)
+- Any other number also succeeds.
