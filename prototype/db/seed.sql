@@ -86,7 +86,7 @@ VALUES
   (
     'a0000000-0000-0000-0000-000000000001',
     'admin@carrental.com',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQyCMRd/A2gFJuBZOSMfX6cWG',
+    '$2b$12$10.O4gQV7O8geHofFseAzux1Zk.50OzzHMnjGvO6rA2kof23RKwa6',
     'ADMIN',
     NULL, NULL, NULL, NULL,
     'STAFF-001'
@@ -95,7 +95,7 @@ VALUES
   (
     'b0000000-0000-0000-0000-000000000002',
     'alice@example.com',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQyCMRd/A2gFJuBZOSMfX6cWG',
+    '$2b$12$10.O4gQV7O8geHofFseAzux1Zk.50OzzHMnjGvO6rA2kof23RKwa6',
     'CUSTOMER',
     'Alice', 'Johnson', '1990-05-14', '555-0101',
     NULL
@@ -104,7 +104,7 @@ VALUES
   (
     'c0000000-0000-0000-0000-000000000003',
     'bob@example.com',
-    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQyCMRd/A2gFJuBZOSMfX6cWG',
+    '$2b$12$10.O4gQV7O8geHofFseAzux1Zk.50OzzHMnjGvO6rA2kof23RKwa6',
     'CUSTOMER',
     'Bob', 'Martinez', '1988-11-22', '555-0202',
     NULL
