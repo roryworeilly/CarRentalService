@@ -16,7 +16,18 @@ export default function NavBar() {
         <Link to="/search" className="brand">DriveAway</Link>
         <nav className="nav-links">
           <Link to="/search">Search</Link>
-          {user && <Link to="/bookings">My Bookings</Link>}
+          {user && user.role !== 'ADMIN' && <Link to="/bookings">My Bookings</Link>}
+          {user?.role === 'ADMIN' && (
+            <div className="admin-menu">
+              <button type="button" className="link-btn admin-menu-btn">Admin ▾</button>
+              <div className="admin-menu-items">
+                <Link to="/admin">Dashboard</Link>
+                <Link to="/admin/fleet">Fleet</Link>
+                <Link to="/admin/categories">Categories</Link>
+                <Link to="/admin/bookings">Bookings</Link>
+              </div>
+            </div>
+          )}
           {user ? (
             <>
               <span className="muted">{user.firstName || user.email}</span>

@@ -24,16 +24,18 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const data = await api.post('/auth/login', { email, password });
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    setToken(data.access_token);
+    const nextUser = { id: data.user_id, role: data.role, email };
+    setUser(nextUser);
+    return nextUser;
   };
 
   const register = async (payload) => {
     const data = await api.post('/auth/register', payload);
-    setToken(data.token);
-    setUser(data.user);
-    return data.user;
+    setToken(data.access_token);
+    const nextUser = { id: data.user_id, role: data.role, email: payload.email };
+    setUser(nextUser);
+    return nextUser;
   };
 
   const logout = () => {

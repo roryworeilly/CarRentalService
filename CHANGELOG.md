@@ -6,7 +6,36 @@ Reference F.R / NFR / UC ids where relevant.
 ## [Unreleased]
 
 ### Added
-- **Frontend (`prototype/frontend/src/components/VehicleCard.jsx`)** — vehicle imagery
+- **Backend (`prototype/backend/app/admin/`)** — admin API surface (F.R 5.1–5.5)
+  - `GET /admin/dashboard` — fleet counts, bookings-by-status, upcoming pickups (7d), revenue (30d).
+  - `GET|POST /admin/vehicles`, `PATCH /admin/vehicles/{id}` — fleet CRUD, status transitions.
+  - `GET|POST /admin/categories`, `PATCH /admin/categories/{id}` — category + rate management; rate edits do NOT alter snapshotted PriceQuotes on existing bookings (F.R 3.2 / 5.3).
+  - `GET /admin/bookings?status=&customer_email=&vehicle_id=&from=&to=` — admin booking search (UC-21).
+  - `POST /admin/bookings/{id}/override-status` — force-transition booking status, writes `audit_entries` row.
+  - All endpoints gated by `require_role('ADMIN')`; non-admin → 403.
+  - `tests/test_admin.py` — 15 passing; verifies RBAC gate, dashboard math, rate-change snapshot immutability, audit row written on override.
+  - Surgical additions to `app/main.py` (router include), `app/schemas.py` (admin schemas appended), `tests/conftest.py` (`make_admin()` helper + `AuditEntry` import).
+  - `AuditEntry` ORM class lives in `admin/service.py` (not `models.py`) to honor the "don't touch existing models" scope rule.
+
+- **Frontend (`prototype/frontend/src/pages/admin/`)** — admin UI (UC-19 to UC-23)
+  - `Dashboard.jsx` — tiles for fleet counts, bookings-by-status table, revenue (30d), upcoming pickups (7d).
+  - `Fleet.jsx` — vehicle table with inline status dropdown (PATCH on change); "Add vehicle" form (VIN, make, model, year, seats, category + location selects).
+  - `Categories.jsx` — inline edit of `daily_rate` / `flat_fee`; persistent notice reminding admin that rate edits don't affect existing bookings.
+  - `Bookings.jsx` — filter form + results table + "Override status" modal (requires reason).
+  - `components/AdminRoute.jsx` — role gate; redirects non-admins to `/search?notice=...`, anonymous to `/login`.
+  - Surgical additions to `App.jsx` (4 routes under `<AdminRoute>`), `NavBar.jsx` (admin-only dropdown; hides "My Bookings" for admins), `api.js` (adds `patch` helper), `styles.css` (appended `/* --- admin --- */` block).
+
+- **Frontend (`src/components/VehicleCard.jsx`)** — vehicle imagery
+  - Per-category Unsplash fallback (Economy / Sedan / SUV / Truck) when backend returns no image URL.
+  - Hard-fallback to `placehold.co` labelled tile on image load error.
+  - Reads `category_name`/`daily_rate` or `category`/`dailyRate` so cards render correctly from either backend endpoint shape.
+
+### Fixed
+- **Frontend (`src/auth.jsx`)** — token/user shape mismatch
+  - `login()` and `register()` were reading `data.token` + `data.user` from the API response, but `TokenOut` returns `{access_token, token_type, role, user_id}`. Result: `user` was `undefined`, admin pages were unreachable because `AdminRoute` couldn't see `user.role`.
+  - Now reads `data.access_token` and constructs `user = {id: data.user_id, role: data.role, email}` (email from the credentials/payload). Admin gating works end-to-end.
+
+
   - Per-category Unsplash fallback (`Economy` / `Sedan` / `SUV` / `Truck`) when the backend returns no `image_url` / `imageUrl`.
   - Hard-fallback to `placehold.co` on image load error, so a dead Unsplash link still renders a labelled tile.
   - Reads either `category_name` + `daily_rate` (current snake_case backend) or `category` + `dailyRate` (legacy), so the card renders correctly regardless of the search endpoint's casing.

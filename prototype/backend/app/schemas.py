@@ -118,3 +118,84 @@ class LocationOut(BaseModel):
     code: str
     name: str
     address: str
+
+
+# ---- Admin (F.R 5.1-5.5) ----
+class AdminCounts(BaseModel):
+    available: int
+    rented: int
+    in_maintenance: int
+    retired: int
+    total: int
+
+
+class AdminBookingsByStatus(BaseModel):
+    INPROGRESS: int = 0
+    CONFIRMED: int = 0
+    FAILED_PAYMENT: int = 0
+    EXPIRED: int = 0
+    CANCELLED: int = 0
+    COMPLETED: int = 0
+
+
+class AdminDashboard(BaseModel):
+    counts: AdminCounts
+    bookings_by_status: AdminBookingsByStatus
+    upcoming_pickups_7d: int
+    revenue_30d: Decimal
+
+
+class AdminVehicleOut(VehicleOut):
+    category_name: str
+    location_code: str
+
+
+class VehicleCreate(BaseModel):
+    vin: str
+    make: str
+    model: str
+    year: int
+    seats: int
+    status: str = "AVAILABLE"
+    category_id: int
+    home_location_id: int
+
+
+class VehicleUpdate(BaseModel):
+    vin: Optional[str] = None
+    make: Optional[str] = None
+    model: Optional[str] = None
+    year: Optional[int] = None
+    seats: Optional[int] = None
+    status: Optional[str] = None
+    category_id: Optional[int] = None
+    home_location_id: Optional[int] = None
+
+
+class CategoryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    daily_rate: Decimal
+    flat_fee: Decimal
+
+
+class CategoryCreate(BaseModel):
+    name: str
+    daily_rate: Decimal
+    flat_fee: Decimal
+
+
+class CategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    daily_rate: Optional[Decimal] = None
+    flat_fee: Optional[Decimal] = None
+
+
+class AdminBookingOut(BookingOut):
+    pass
+
+
+class BookingOverrideRequest(BaseModel):
+    status: str
+    reason: str

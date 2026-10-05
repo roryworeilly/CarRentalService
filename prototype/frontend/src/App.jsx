@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './auth.jsx';
 import NavBar from './components/NavBar.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import AdminRoute from './components/AdminRoute.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Search from './pages/Search.jsx';
@@ -9,6 +10,10 @@ import VehicleDetail from './pages/VehicleDetail.jsx';
 import Checkout from './pages/Checkout.jsx';
 import MyBookings from './pages/MyBookings.jsx';
 import NotFound from './pages/NotFound.jsx';
+import AdminDashboard from './pages/admin/Dashboard.jsx';
+import AdminFleet from './pages/admin/Fleet.jsx';
+import AdminCategories from './pages/admin/Categories.jsx';
+import AdminBookings from './pages/admin/Bookings.jsx';
 
 export default function App() {
   return (
@@ -45,6 +50,13 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            {/* F.R 5.x — admin area, gated by AdminRoute (ADMIN role only) */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/fleet" element={<AdminFleet />} />
+              <Route path="/admin/categories" element={<AdminCategories />} />
+              <Route path="/admin/bookings" element={<AdminBookings />} />
+            </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </main>

@@ -42,6 +42,7 @@ def app_client():
 
     from app.db import Base
     from app import models  # noqa: F401 ensure tables registered
+    from app.admin import service as _admin_service  # noqa: F401 registers AuditEntry on Base
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
@@ -73,6 +74,29 @@ def _seed(SessionLocal) -> None:
                      category_id=cat_suv.id, home_location_id=loc1.id)
         s.add_all([v1, v2])
         s.commit()
+
+
+def make_admin(client, email="admin@example.com", password="correcthorse"):
+    """Create an ADMIN user directly via the SessionLocal, then login to get a token.
+
+    Added additively for admin tests; does not modify existing fixtures.
+    """
+    from app import db as _db
+    from app.models import User
+    from app.security import hash_password, create_access_token
+
+    with _db.SessionLocal() as s:
+        existing = s.query(User).filter(User.email == email).first()
+        if existing is None:
+            u = User(email=email, password_hash=hash_password(password), role="ADMIN", staff_id="S-1")
+            s.add(u)
+            s.commit()
+            s.refresh(u)
+            uid = u.id
+        else:
+            uid = existing.id
+    token = create_access_token(subject=uid, role="ADMIN")
+    return {"user_id": uid, "token": token, "email": email}
 
 
 def register_payload(email="alice@example.com", age=30, licence_days=365):

@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
+from .admin.router import router as admin_router
 from .auth.router import router as auth_router
 from .booking.router import router as booking_router
 from .booking.service import expire_stale_holds
@@ -54,6 +55,7 @@ app.include_router(auth_router)
 app.include_router(catalog_router)
 app.include_router(booking_router)
 app.include_router(locations_router)
+app.include_router(admin_router)
 
 
 @app.exception_handler(IntegrityError)
