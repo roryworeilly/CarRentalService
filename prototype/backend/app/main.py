@@ -18,6 +18,7 @@ from .booking.router import router as booking_router
 from .booking.service import expire_stale_holds
 from .catalog.router import router as catalog_router
 from .db import SessionLocal
+from .locations.router import router as locations_router
 
 
 def _run_expiry():
@@ -43,7 +44,7 @@ app = FastAPI(title="Car Rental Service — Prototype API", version="0.1.0", lif
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # prototype only — tighten in production
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,6 +53,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(catalog_router)
 app.include_router(booking_router)
+app.include_router(locations_router)
 
 
 @app.exception_handler(IntegrityError)

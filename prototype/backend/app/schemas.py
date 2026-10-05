@@ -109,3 +109,12 @@ class BookingOut(BaseModel):
     quote_subtotal: Decimal
     quote_total: Decimal
     created_at: datetime
+
+
+# ---- Locations ----
+class LocationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    code: str
+    name: str
+    address: str
